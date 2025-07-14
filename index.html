@@ -3,161 +3,144 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Monad Eligibility Checker</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <title>Monad Testnet Eligibility Checker</title>
   <style>
     body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(145deg, #2a0a4f, #18002c);
-      color: white;
       margin: 0;
-      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #1e0033;
+      color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh;
+      padding: 2rem;
     }
 
     h1 {
-      margin-top: 60px;
-      font-size: 28px;
+      margin-bottom: 10px;
+      font-size: 1.6rem;
       text-align: center;
     }
 
     p {
-      color: #cdbdeb;
+      color: #bbb;
       text-align: center;
-      max-width: 420px;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
 
     .container {
-      background-color: rgba(255, 255, 255, 0.05);
-      padding: 30px 20px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-      width: 90%;
-      max-width: 420px;
-      margin-bottom: 50px;
+      max-width: 400px;
+      width: 100%;
+      background: #2d0055;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
     }
 
     input {
       width: 100%;
-      padding: 14px;
-      border: none;
+      padding: 10px;
       border-radius: 10px;
-      margin-bottom: 16px;
-      font-size: 16px;
-      background-color: #2c1e4b;
-      color: white;
-      outline: none;
+      border: none;
+      margin-bottom: 15px;
+      font-size: 1rem;
     }
 
     button {
       width: 100%;
-      padding: 14px;
-      font-size: 16px;
+      padding: 10px;
+      font-size: 1rem;
+      background: linear-gradient(to right, #915eff, #7b3fe4);
+      color: white;
       border: none;
       border-radius: 10px;
-      background: linear-gradient(to right, #a34dfd, #712eff);
-      color: white;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: transform 0.2s ease;
     }
 
     button:hover {
-      background: linear-gradient(to right, #b972ff, #8450ff);
+      transform: scale(1.02);
     }
 
-    .loader {
-      display: inline-block;
-      width: 24px;
-      height: 24px;
-      border: 3px solid rgba(255,255,255,0.2);
-      border-top: 3px solid white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 10px;
+    .result, .error, .loading {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      background-color: #3b006e;
+      text-align: center;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    .error { color: #ff6b6b; background-color: #550030; }
+    .loading { color: #f0e68c; background-color: #332244; animation: blink 1s infinite; }
 
-    .result {
-      margin-top: 25px;
-      font-size: 15px;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
     }
-
-    .eligible { color: #00ffb7; font-weight: bold; }
-    .not-eligible { color: #ff6b6b; font-weight: bold; }
   </style>
 </head>
 <body>
-
-  <h1>🧪 Monad Testnet Eligibility Checker</h1>
-  <p>Enter your address to check your reward based on transaction count.</p>
-
   <div class="container">
-    <input type="text" id="wallet" placeholder="Enter your Monad address (0x...)">
+    <h1>🟣 Monad Testnet Eligibility Checker</h1>
+    <p>Enter your address to check your reward based on transaction count.</p>
+    <input type="text" id="wallet" placeholder="0x..." />
     <button onclick="checkEligibility()">Check Eligibility</button>
-    <div id="result" class="result" style="display:none;"></div>
+    <div id="result" class="result" style="display: none;"></div>
+    <div id="error" class="error" style="display: none;"></div>
+    <div id="loading" class="loading" style="display: none;">⏳ Fetching data, please wait...</div>
   </div>
 
   <script>
     const apiKey = "2zqpZoYNmrmNNkOdrMA0UrtKlWY";
-    const apiURL = "https://monad-testnet.blockvision.org/v1/2zqvSLoxF2cpZ0JY9irA6xomPJB";
 
     async function checkEligibility() {
       const address = document.getElementById("wallet").value.trim();
-      const resultBox = document.getElementById("result");
-      resultBox.style.display = "block";
-      resultBox.innerHTML = '<div class="loader"></div> Fetching data... Please wait.';
+      const resultEl = document.getElementById("result");
+      const errorEl = document.getElementById("error");
+      const loadingEl = document.getElementById("loading");
 
-      if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-        resultBox.innerHTML = "⚠️ Please enter a valid Monad address (starting with 0x...)";
+      resultEl.style.display = "none";
+      errorEl.style.display = "none";
+      loadingEl.style.display = "block";
+
+      if (!address.startsWith("0x") || address.length !== 42) {
+        loadingEl.style.display = "none";
+        errorEl.innerText = "❌ Invalid address format.";
+        errorEl.style.display = "block";
         return;
       }
 
       try {
-        const res = await fetch(`${apiURL}?address=${address}`, {
-          headers: { "x-api-key": apiKey }
+        // Wait 5 seconds to simulate delay
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        const res = await fetch(`https://api.blockvision.org/v2/monad/account/transactions?address=${address}&limit=1000`, {
+          headers: {
+            "x-api-key": apiKey
+          }
         });
 
-        if (!res.ok) throw new Error("Fetch failed: " + res.status);
-
         const data = await res.json();
-        console.log("RESPONSE:", data);
 
-        const txCount = data.txCount || 0;
-        const txReward = txCount >= 100 ? txCount / 10 : 0;
-        const totalReward = txReward.toFixed(2);
+        if (!data.result || !data.result.data) throw new Error("Invalid response");
 
-        if (txReward > 0) {
-          resultBox.innerHTML = `
-            <div class="eligible">✅ Eligible</div>
-            <div>📊 Transactions: ${txCount}</div>
-            <hr style="margin: 12px 0; border: none; border-top: 1px solid #555;">
-            <div>🎁 <strong>Total Reward: ${totalReward} TOKEN</strong></div>
-          `;
-        } else {
-          resultBox.innerHTML = `
-            <div class="not-eligible">❌ Not Eligible</div>
-            <div>📊 Transactions: ${txCount}</div>
-            <div>You need at least 100 transactions.</div>
-          `;
-        }
+        const txCount = data.result.total;
+        const eligible = txCount >= 100;
+        const reward = eligible ? (txCount / 10).toFixed(2) : 0;
 
+        loadingEl.style.display = "none";
+        resultEl.innerHTML = eligible
+          ? `✅ <strong>Eligible!</strong><br/>📊 Total Transactions: ${txCount}<br/>🎁 Reward: ${reward} TOKEN`
+          : `❌ <strong>Not eligible</strong><br/>You only have ${txCount} transactions.`;
+        resultEl.style.display = "block";
       } catch (err) {
+        loadingEl.style.display = "none";
+        errorEl.innerText = "❌ Error occurred while checking eligibility.";
+        errorEl.style.display = "block";
         console.error(err);
-        resultBox.innerHTML = `<div class="not-eligible">❌ Error occurred while checking eligibility.</div>`;
       }
     }
   </script>
-
 </body>
 </html>
