@@ -1,36 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Monad Testnet Eligibility Checker</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #2b0a3d;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #1e0033;
       color: #ffffff;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 60px 20px;
-      min-height: 100vh;
+      padding: 40px 20px;
       margin: 0;
     }
 
     h1 {
-      color: #ffffff;
+      font-size: 22px;
+      margin: 10px 0 5px;
+      text-align: center;
     }
 
     p {
-      color: #d5c6e0;
+      color: #cfc6dc;
+      text-align: center;
+      max-width: 400px;
+      margin: 0 0 30px;
     }
 
     input {
       padding: 12px;
-      width: 320px;
-      margin: 12px 0;
+      width: 100%;
+      max-width: 350px;
       font-size: 16px;
       border: none;
       border-radius: 6px;
+      margin-bottom: 12px;
       outline: none;
     }
 
@@ -51,14 +57,22 @@
 
     #result {
       margin-top: 30px;
-      font-size: 18px;
-      background: #3e2152;
+      font-size: 16px;
+      background: rgba(255,255,255,0.05);
       padding: 20px;
       border-radius: 10px;
+      max-width: 400px;
       width: 100%;
-      max-width: 480px;
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
-      color: #e0d3f9;
+      box-shadow: 0 0 12px rgba(0,0,0,0.2);
+      color: #fff;
+    }
+
+    .eligible {
+      color: #00ffae;
+    }
+
+    .not-eligible {
+      color: #ff6666;
     }
   </style>
 </head>
@@ -67,7 +81,7 @@
   <h1>🧪 Monad Testnet Eligibility Checker</h1>
   <p>Check if you're eligible for token rewards based on your transaction history.</p>
 
-  <input type="text" id="wallet" placeholder="Enter your Monad address (0x...)">
+  <input type="text" id="wallet" placeholder="Enter your Monad address (0x...)"/>
   <button onclick="checkEligibility()">Check Eligibility</button>
 
   <div id="result"></div>
@@ -84,7 +98,7 @@
 
       resultBox.innerHTML = "⏳ Fetching transaction data...";
 
-      const apiKey = "2zqpZoYNmrmNNkOdrMA0UrtKlWY"; // API Key kamu
+      const apiKey = "2zqpZoYNmrmNNkOdrMA0UrtKlWY";
       const url = `https://monad-testnet.blockvision.org/v2/monad/account/transactions?address=${address}&limit=10000`;
 
       try {
@@ -103,15 +117,15 @@
           if (txCount >= 100) {
             const token = ((txCount / 10) * 1).toFixed(2);
             resultBox.innerHTML = `
-              ✅ <strong>Eligible!</strong><br>
-              📊 Total Transactions: <strong>${txCount}</strong><br>
-              🎁 Reward: <strong>${token} TOKEN</strong>
+              <div class="eligible">✅ <strong>Eligible!</strong></div>
+              <div>📊 Total Transactions: <strong>${txCount}</strong></div>
+              <div>🎁 Reward: <strong>${token} TOKEN</strong></div>
             `;
           } else {
             resultBox.innerHTML = `
-              ❌ <strong>Not Eligible</strong><br>
-              📊 Total Transactions: <strong>${txCount}</strong><br>
-              You need at least <strong>100 transactions</strong> to qualify.
+              <div class="not-eligible">❌ <strong>Not Eligible</strong></div>
+              <div>📊 Total Transactions: <strong>${txCount}</strong></div>
+              <div>You need at least <strong>100 transactions</strong> to qualify.</div>
             `;
           }
         } else {
