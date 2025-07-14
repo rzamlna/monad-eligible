@@ -134,13 +134,6 @@
         console.log("RESPONSE:", data);
 
         const txCount = data.txCount || 0;
-        const firstTx = data.firstTxTimestamp
-          ? new Date(data.firstTxTimestamp * 1000)
-          : null;
-
-        const earlyCutoff = new Date("2025-02-16T00:00:00Z");
-        const earlyUser = firstTx && firstTx < earlyCutoff;
-
         const txReward = txCount >= 100 ? txCount / 10 : 0;
         const totalReward = txReward.toFixed(2);
 
@@ -148,8 +141,6 @@
           resultBox.innerHTML = `
             <div class="eligible">✅ Eligible</div>
             <div>📊 Transactions: ${txCount}</div>
-            <div>🕓 First Tx: ${firstTx ? firstTx.toLocaleDateString() : 'N/A'}</div>
-            <div>⏳ Early User: ${earlyUser ? '✅ Yes' : '❌ No'}</div>
             <hr style="margin: 12px 0; border: none; border-top: 1px solid #555;">
             <div>🎁 <strong>Total Reward: ${totalReward} TOKEN</strong></div>
           `;
